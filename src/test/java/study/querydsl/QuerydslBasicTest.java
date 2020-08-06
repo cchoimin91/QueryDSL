@@ -48,7 +48,7 @@ public class QuerydslBasicTest {
 
     @Test
     public void startQuerydsl(){
-        //같은 테이블 join시만 
+        //같은 테이블 join시만
         //QMember qm2 = new QMember("m2");
 
         Member findMember = queryFactory
@@ -59,4 +59,70 @@ public class QuerydslBasicTest {
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
+
+    @Test
+    public void search(){
+        Member searchMember = queryFactory
+                .select(QMember.member)
+                .from(QMember.member)
+                .where(QMember.member.username.eq("member1")
+                        .and(QMember.member.age.eq(10))
+                )
+                .fetchOne();
+        assertThat(searchMember.getUsername()).isEqualTo("member1");
+    }
+
+    @Test
+    public void searchNe(){
+        Member neMember = queryFactory
+                .select(QMember.member)
+                .from(QMember.member)
+                .where(QMember.member.username.ne("member1"))
+                .fetchFirst();
+
+        assertThat(neMember.getUsername()).isNotEqualTo("member1");
+    }
+
+    @Test
+    public void searchNot(){
+        Member notMember = queryFactory
+                .select(QMember.member)
+                .from(QMember.member)
+                .where(QMember.member.username.eq("member1").not())
+                .fetchFirst();
+
+        assertThat(notMember.getUsername()).isNotEqualTo("member1");
+    }
+
+    @Test
+    public void searchIsNotNull(){
+        Member notMember = queryFactory
+                .select(QMember.member)
+                .from(QMember.member)
+                .where(QMember.member.username.isNotNull())
+                .fetchFirst();
+
+        assertThat(notMember.getUsername()).isNotEqualTo("member1");
+    }
+
+    @Test
+    public void searchIn(){
+        long inMember = queryFactory
+                .select(QMember.member)
+                .from(QMember.member)
+                .where(QMember.member.username.in("member1", "member2"))
+                .fetchCount();
+
+        assertThat(inMember).isEqualTo(2);
+    }
+
+    /*
+         member.age.goe(30) // age >= 30
+         member.age.gt(30) // age > 30
+         member.age.loe(30) // age <= 30
+         member.age.lt(30) // age < 30
+         member.username.like("member%") //like 검색
+         member.username.contains("member") // like ‘%member%’ 검색
+         member.username.startsWith("member") //like ‘member%’ 검색
+     */
 }
