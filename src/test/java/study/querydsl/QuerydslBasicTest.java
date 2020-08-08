@@ -15,6 +15,8 @@ import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.*;
 
@@ -140,6 +142,17 @@ public class QuerydslBasicTest {
         System.out.println("results.getResults() = " + result.getResults());
         System.out.println("result.getTotal() = " + result.getTotal());
 
+    }
+
+    @Test
+    public void sort(){
+        em.persist(new Member("member100",100));
+        List<Member> members = queryFactory
+                .selectFrom(member)
+                .orderBy(member.age.desc())
+                .fetch();
+
+        assertThat(members.get(0).getAge()).isEqualTo(100);
     }
 
 }
