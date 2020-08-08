@@ -1,6 +1,7 @@
 package study.querydsl;
 
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -125,4 +126,20 @@ public class QuerydslBasicTest {
          member.username.contains("member") // like ‘%member%’ 검색
          member.username.startsWith("member") //like ‘member%’ 검색
      */
+
+    /**
+     *  복잡하고, 성능이 중요한 페이지에서는 사용 주의
+     *  totalCount쿼리를 더 심플하게 가져오는 경우가 있음.
+     */
+    @Test
+    public void fetchResults(){
+        QueryResults<Member> result = queryFactory
+                .selectFrom(member)
+                .fetchResults();
+
+        System.out.println("results.getResults() = " + result.getResults());
+        System.out.println("result.getTotal() = " + result.getTotal());
+
+    }
+
 }
