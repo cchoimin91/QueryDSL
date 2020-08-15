@@ -4,6 +4,7 @@ package study.querydsl;
 import com.fasterxml.jackson.databind.deser.std.StdKeyDeserializer;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sun.xml.bind.v2.schemagen.xmlschema.AttrDecls;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import javax.persistence.PersistenceUnit;
 
 import java.util.List;
 
+import static com.querydsl.jpa.JPAExpressions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.*;
 import static study.querydsl.entity.QTeam.team;
@@ -345,7 +347,42 @@ public class QuerydslBasicTest {
         assertThat(loaded).as("패치조인 적용").isTrue();
     }
 
+    /**
+     *  JPQL의 서브쿼리의 한계점
+     *  from절의 subQuery는 불가. (QueryDSL도 불가.)
+     */
+    @Test
+    public void whereSubQuery(){
+        QMember memberSub = new QMember("memberSub");
 
+        List<Member> result = queryFactory
+                .select(member)
+                .from(member)
+                .where(member.age.eq(
+                        select(memberSub.age.max())
+                                .from(memberSub)
+                        )
+                ).fetch();
 
+        assertThat(result).extracting("age")
+                .containsExactly(40);
+    }
+
+    @Test
+    public void selectSubQuery(){
+        QMember memberSub = new QMember("memberSub");
+
+        List<Tuple> result = queryFactory
+                .select(member.username
+                        , select(memberSub.age.avg())
+                        .from(memberSub)
+                )
+                .from(member)
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
 
 }
