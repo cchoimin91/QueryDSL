@@ -18,6 +18,8 @@ import study.querydsl.entity.QTeam;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 
 import java.util.List;
 
@@ -33,6 +35,11 @@ public class QuerydslBasicTest {
     EntityManager em;
 
     JPAQueryFactory queryFactory;
+
+    @PersistenceUnit
+    EntityManagerFactory emf;
+
+
 
     @BeforeEach
     public void before(){
@@ -261,6 +268,84 @@ public class QuerydslBasicTest {
                 .extracting("username")
                 .containsExactly("teamA","teamB");
     }
+    
+    @Test
+    public void join_on_filtering(){
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(member.team, team).on(team.name.eq("teamA"))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    /**
+     * 연관관계 없는 엔티티의 left join
+     * 회원의 이름이 팀 이름과 같은 것
+     *
+     * 하이버네이트5.1부터 on을 사용해서 서로 관계가 없는 컬럼으로 left join 기능이 추가됨
+     *
+     * 일반조인 : leftJoin(member.team , team) // fk와 join
+     * on조인 : from(member).leftJoin(team).on("abc")
+     */
+    @Test
+    public void join_on_no_relation(){
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team).on(member.username.eq(team.name))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    /**
+     * fetch join?
+     * 연관된 엔티티를 SQL에서 한번에 조회 하는 기능.
+     * - SQL에서 기본적으로 제공하는 기능은 아님
+     * - 주로 성능 최적화에 사용함
+     */
+    @Test
+    public void fetchJoinNotUse(){
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        // 이미 로딩된 entity인지 판단
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("패치조인 미적용").isFalse();
+    }
+
+    @Test
+    public void fetchJoinUse(){
+        em.flush();
+        em.clear();
+
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .join(member.team, team).fetchJoin()
+                .where(member.username.eq("member1"))
+                .fetchOne();
+
+        // 이미 로딩된 entity인지 판단
+        boolean loaded = emf.getPersistenceUnitUtil().isLoaded(findMember.getTeam());
+        assertThat(loaded).as("패치조인 적용").isTrue();
+    }
+
+
 
 
 }
