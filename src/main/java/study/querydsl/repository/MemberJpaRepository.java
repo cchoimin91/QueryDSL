@@ -1,6 +1,8 @@
 package study.querydsl.repository;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -69,6 +71,32 @@ public class MemberJpaRepository {
                 .leftJoin(member.team, team)
                 .where(builder)
                 .fetch();
+    }
+
+    public List<MemberTeamDto> search_BooleanExpression(MemberSearchCondition condition){
+        return jpaQueryFactory
+                .select(new QMemberTeamDto(
+                        member.id.as("memberId")
+                        , member.username
+                        , member.age
+                        , team.id.as("teamId")
+                        , team.name.as("teamName")
+                ))
+                .from(member)
+                .leftJoin(member.team, team)
+                .where(
+                        usernameEq(condition.getUserName())
+                        , teamNameEq(condition.getTeamName())
+                )
+                .fetch();
+    }
+
+    private BooleanExpression usernameEq(String username){
+        return StringUtils.hasText(username) ? member.username.eq(username) : null;
+    }
+
+    private BooleanExpression teamNameEq(String teamName) {
+        return StringUtils.hasText(teamName) ? team.name.eq(teamName) : null;
     }
 
 }
