@@ -1,7 +1,5 @@
 package study.querydsl.repository;
 
-import com.mysema.commons.lang.Assert;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -82,7 +80,7 @@ class MemberJpaRepositoryTest {
         condition.setUserName("member4");
         condition.setTeamName("teamB");
 
-        List<MemberTeamDto> result = memberJpaRepository.search(condition);
+        List<MemberTeamDto> result = memberJpaRepository.searchByBooleanExpression(condition);
         for (MemberTeamDto memberTeamDto : result) {
             System.out.println("memberTeamDto = " + memberTeamDto);
         }

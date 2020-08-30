@@ -73,7 +73,7 @@ public class MemberJpaRepository {
                 .fetch();
     }
 
-    public List<MemberTeamDto> search_BooleanExpression(MemberSearchCondition condition){
+    public List<MemberTeamDto> searchByBooleanExpression(MemberSearchCondition condition){
         return jpaQueryFactory
                 .select(new QMemberTeamDto(
                         member.id.as("memberId")
