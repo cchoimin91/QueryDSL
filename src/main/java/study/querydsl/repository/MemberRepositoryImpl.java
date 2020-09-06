@@ -2,14 +2,17 @@ package study.querydsl.repository;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.support.PageableExecutionUtils;
 import org.springframework.util.StringUtils;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
+import study.querydsl.entity.Member;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -114,6 +117,41 @@ public class MemberRepositoryImpl implements  MemberRepositoryCustom{
                 .fetchCount();
 
         return new PageImpl<>(content, pageable,count);
-
     }
+
+    @Override
+    public Page<MemberTeamDto> searchPageOptimization(MemberSearchCondition condition, Pageable pageable) {
+        List<MemberTeamDto> content = jpaQueryFactory
+                .select(new QMemberTeamDto(
+                        member.id.as("memberId")
+                        , member.username
+                        , member.age
+                        , team.id.as("teamId")
+                        , team.name.as("teamName")
+                ))
+                .from(member)
+                .leftJoin(member.team, team)
+                .where(
+                        usernameEq(condition.getUserName())
+                        , teamNameEq(condition.getTeamName())
+                )
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        JPAQuery<Member> count = jpaQueryFactory
+                .select(member)
+                .from(member)
+                //.leftJoin(member.team, team)
+                .where(
+                        usernameEq(condition.getUserName())
+                        , teamNameEq(condition.getTeamName())
+                ); //  return type ->JPAQuery<Member>
+                //.fetchCount(); 이걸 호출해야 실제 count쿼리가 날라감
+
+        //return new PageImpl<>(content, pageable,count);
+        return PageableExecutionUtils.getPage(content, pageable, count::fetchCount);
+    }
+
+
 }
