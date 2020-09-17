@@ -1,4 +1,4 @@
-package study.querydsl.repository;
+package study.querydsl.repository.impl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -13,6 +13,7 @@ import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
 import study.querydsl.entity.Member;
+import study.querydsl.repository.MemberRepositoryCustom;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -21,7 +22,7 @@ import static study.querydsl.entity.QMember.member;
 import static study.querydsl.entity.QTeam.team;
 
 // Impl <- 네이밍 맞춰줘야함 ex) AbcdRepository + Impl
-public class MemberRepositoryImpl implements  MemberRepositoryCustom{
+public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
